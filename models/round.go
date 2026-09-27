@@ -27,7 +27,7 @@ type Round struct {
 type RoundSummary struct {
 	Round
 	Tipplers	uint16		`json:"tipplers" default:1`
-	Drinks		[]Drink		`json:"drinks,omitempty"`
+	Drinks		[]Drink		`json:"drinks"`
 }
 
 type RoundDetails struct {
@@ -178,6 +178,7 @@ func (m *RoundModel) Summary() (*RoundSummary, error) {
 	summary := new(RoundSummary)
 	summary.Round = m.Round.Clean()
 	summary.Tipplers = uint16(len(tipplers))
+	summary.Drinks = make([]Drink, 0)
 	for _, drink := range drinks {
 		summary.Drinks = append(summary.Drinks, *drink)
     }
