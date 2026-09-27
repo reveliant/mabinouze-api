@@ -18,6 +18,7 @@ import (
 // Flags
 var httpHost, httpSocket string
 var httpPort uint
+var debug bool
 
 //go:embed sql/*
 var sqlLib embed.FS
@@ -41,7 +42,7 @@ func serve() {
 	// Create server with timeout
 	srv := &http.Server{
 		Addr:    fmt.Sprintf("%s:%d", httpHost, httpPort),
-		Handler: api.NewRouter(db),
+		Handler: api.NewRouter(db, debug),
 		// set timeout due CWE-400 - Potential Slowloris Attack
 		ReadHeaderTimeout: 5 * time.Second,
 	}
@@ -66,6 +67,8 @@ func serve() {
 func main() {
 	log.SetFlags(0)
 
+	// Application whole flags
+	flag.BoolVar(&debug, "debug", false, "Enable debug mode")
 	// Database connector flags
 	var dbHost, dbName, dbUser string
 	var dbPort uint

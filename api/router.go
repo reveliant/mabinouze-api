@@ -12,7 +12,12 @@ func DatabaseMiddleware(db *sql.DB) gin.HandlerFunc {
   }
 }
 
-func NewRouter(db *sql.DB) *gin.Engine {
+func NewRouter(db *sql.DB, debug bool) *gin.Engine {
+	// Disable debug mode
+	if (!debug) {
+		gin.SetMode(gin.ReleaseMode)
+	}
+	
 	// Set the router as the default one shipped with Gin
 	router := gin.Default()
 	
