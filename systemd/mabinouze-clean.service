@@ -1,0 +1,10 @@
+[Unit]
+Description="MaBinouze.fr Database Cleaning"
+
+[Service]
+Type=simple
+User=mabinouze
+Group=mabinouze
+UMask=0111
+WorkingDirectory=/opt/mabinouze/
+ExecStart=/opt/mabinouze/mabinouze --clean-db
