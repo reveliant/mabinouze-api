@@ -55,7 +55,7 @@ func NewOrderModel(db *sql.DB, ctx context.Context) *OrderModel {
 
 // Create order in database
 func (m OrderModel) Create() error {
-	_, err := m.Exec("INSERT INTO orders(order_id, round_id, name, password) VALUES ($1, $2, $3, $4)", m.Order.ID, *m.Order.RoundID, m.Order.Tippler, utils.Crypt(m.Order.Password))
+	_, err := m.Exec("INSERT INTO orders(order_id, round_id, name, password) VALUES ($1, $2, $3, $4)", m.Order.ID, *m.Order.RoundID, m.Order.Tippler, m.Order.Password)
 	return err
 }
 
@@ -67,7 +67,7 @@ func (m *OrderModel) Read() error {
 
 // Update order in database
 func (m OrderModel) Update() error {
-	_, err := m.Exec("UPDATE orders SET name = $1, password = $2 WHERE order_id = $3", m.Order.Tippler, utils.Crypt(m.Order.Password), m.Order.ID)
+	_, err := m.Exec("UPDATE orders SET name = $1, password = $2 WHERE order_id = $3", m.Order.Tippler, m.Order.Password, m.Order.ID)
 	return err
 }
 
