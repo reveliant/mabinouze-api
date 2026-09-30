@@ -131,7 +131,7 @@ func (h Handler) verifyRoundAccessToken(c *gin.Context, round m.Round) bool {
 	val, found := c.Get(AuthBearer)
 	if !found {
 		c.Header("WWW-Authenticate", "Bearer realm=\"mabinouze\"")
-		c.AbortWithStatus(http.StatusUnauthorized)
+		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Access password required but not provided"})
 		return false
 	}
 	token := val.(string)

@@ -94,7 +94,18 @@ func (h OrderHandler) GetFromRoundSearch(c *gin.Context) {
 // Common handler to create and return order
 // 'resolveRound' defines how to get parent round from request headers or body
 // 'buildOrder' defines how to build order from parent round, request header or body 
-func (h OrderHandler) create(c *gin.Context, resolveRound func(c *gin.Context) *m.RoundModel, buildOrder func(m.Round) *m.OrderModel) {
+func (h OrderHandler) create(c *gin.Context, resolveRound func(c *gin.Context) *m.RoundModel) {
+	// Bind payload to order model
+	payload := new(m.Order)
+	if err := c.ShouldBind(&payload); err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	if payload.Tippler == "" && payload.InTippler == "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Missing tippler name"})
+		return
+	}
+
 	// Read parent round
 	round_model := resolveRound(c)
 	if round_model == nil { return }
@@ -102,8 +113,15 @@ func (h OrderHandler) create(c *gin.Context, resolveRound func(c *gin.Context) *
 	// Verify credentials if access token required
 	if !h.verifyRoundAccessToken(c, round_model.Round) { return }
 
-	// Prepare new order object
-	model := buildOrder(round_model.Round)
+	// Prepare new order object from payload 
+	model := m.NewOrderModel(h.DB, c.Request.Context())
+	model.Order.ID = uuid.New()
+	model.Order.RoundID = &round_model.Round.ID
+	model.Order.Tippler = payload.Tippler
+	if payload.Tippler == "" {
+		model.Order.Tippler = payload.InTippler
+	}
+	model.Order.Password = utils.Crypt(payload.Password)
 
 	// Create order in database
 	if err := model.Create(); err != nil {
@@ -129,77 +147,27 @@ func (h OrderHandler) Post(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	if payload.Tippler == "" && payload.InTippler == "" {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Missing tippler name"})
-		return
-	}
 
-	h.create(
-		c,
-		func(c *gin.Context) *m.RoundModel {
-			model := m.NewRoundModel(h.DB, c.Request.Context())
-			model.Round.ID = *payload.RoundID
+	h.create(c, func(c *gin.Context) *m.RoundModel {
+		model := m.NewRoundModel(h.DB, c.Request.Context())
+		model.Round.ID = *payload.RoundID
 
-			if err := model.Read(); err != nil {
-				c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "No such round", "id": model.Round.ID})
-				return nil
-			}
-			return model
-		},
-		func(round m.Round) *m.OrderModel {
-			// Prepare new order object from payload 
-			model := m.NewOrderModel(h.DB, c.Request.Context())
-			model.Order.ID = uuid.New()
-			model.Order.RoundID = &round.ID
-			model.Order.Tippler = payload.Tippler
-			if payload.Tippler == "" {
-				model.Order.Tippler = payload.InTippler
-			}
-			model.Order.Password = utils.Crypt(payload.Password)
-			return model
-		},
-	)
+		if err := model.Read(); err != nil {
+			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "No such round", "id": model.Round.ID})
+			return nil
+		}
+		return model
+	})
 }
 
 // Post from round UUID, request headers and body
 func (h OrderHandler) PostFromRound(c *gin.Context) {
-	creds := c.MustGet(AuthCredentials).(Credentials)
-
-	h.create(c, h.getRoundByID, func(round m.Round) *m.OrderModel {
-		// Prepare new order object from payload 
-		model := m.NewOrderModel(h.DB, c.Request.Context())
-		model.Order.ID = uuid.New()
-		model.Order.RoundID = &round.ID
-		model.Order.Tippler = creds.User
-		model.Order.Password = utils.Crypt(creds.Password)
-		return model
-	})
+	h.create(c, h.getRoundByID)
 }
 
 // Post from round search by name, request headers and body
 func (h OrderHandler) PostFromRoundSearch(c *gin.Context) {
-	payload := new(m.Order)
-	if err := c.ShouldBind(&payload); err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-	if payload.Tippler == "" && payload.InTippler == "" {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Missing tippler name"})
-		return
-	}
-
-	h.create(c, h.getRoundByName, func(round m.Round) *m.OrderModel {
-		// Prepare new order object from payload 
-		model := m.NewOrderModel(h.DB, c.Request.Context())
-		model.Order.ID = uuid.New()
-		model.Order.RoundID = &round.ID
-		model.Order.Tippler = payload.Tippler
-		if payload.Tippler == "" {
-			model.Order.Tippler = payload.InTippler
-		}
-		model.Order.Password = utils.Crypt(payload.Password)
-		return model
-	})
+	h.create(c, h.getRoundByName)
 }
 
 // Delete order

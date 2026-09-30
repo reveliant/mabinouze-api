@@ -47,15 +47,14 @@ func NewRouter(db *sql.DB, debug bool) *gin.Engine {
 		// /v1/order
 		order_hdlr := OrderHandler{Handler{DB: db}}
 		orders := v1.Group("/order")
-		orders.Use(TipplerAuthRequired())
 
 		orders.OPTIONS("/:uuid", Preflight("OPTIONS, HEAD, GET, DELETE"))
-		orders.HEAD("/:uuid", ParseUUID(), order_hdlr.Get)
-		orders.GET("/:uuid", ParseUUID(), order_hdlr.Get)
-		orders.DELETE("/:uuid", ParseUUID(), order_hdlr.Delete)
+		orders.HEAD("/:uuid", ParseUUID(), TipplerAuthRequired(), order_hdlr.Get)
+		orders.GET("/:uuid", ParseUUID(), TipplerAuthRequired(), order_hdlr.Get)
+		orders.DELETE("/:uuid", ParseUUID(), TipplerAuthRequired(), order_hdlr.Delete)
 
 		orders.OPTIONS("", Preflight("OPTIONS, POST"))
-		orders.POST("", order_hdlr.Post)
+		orders.POST("", AccessTokenOptional(), order_hdlr.Post)
 
 		// /v1/round
 		round_hdlr := RoundHandler{Handler{DB: db}}
@@ -63,7 +62,7 @@ func NewRouter(db *sql.DB, debug bool) *gin.Engine {
 
 		rounds.OPTIONS("/:uuid", Preflight("OPTIONS, HEAD, GET, PUT, DELETE"))
 		rounds.HEAD("/:uuid", ParseUUID(), round_hdlr.Get)
-		rounds.GET("/:uuid", ParseUUID(), round_hdlr.Get)
+		rounds.GET("/:uuid", ParseUUID(), AccessTokenOptional(), round_hdlr.Get)
 		rounds.PUT("/:uuid", ParseUUID(), AdminAuthRequired(), round_hdlr.Put)
 		rounds.DELETE("/:uuid", ParseUUID(), AdminAuthRequired(), round_hdlr.Delete)
 
@@ -75,21 +74,21 @@ func NewRouter(db *sql.DB, debug bool) *gin.Engine {
 
 		rounds.OPTIONS("/:uuid/order", Preflight("OPTIONS, GET, DELETE"))
 		rounds.GET("/:uuid/order", ParseUUID(), TipplerAuthRequired(), order_hdlr.GetFromRound)
-		rounds.POST("/:uuid/order", ParseUUID(), TipplerAuthRequired(), order_hdlr.PostFromRound)
+		rounds.POST("/:uuid/order", ParseUUID(), AccessTokenOptional(), order_hdlr.PostFromRound)
 
 		// /v1/search
 		search := v1.Group("/search")
 
 		search.OPTIONS("/:id", Preflight("OPTIONS, HEAD, GET"))
 		search.HEAD("/:id", round_hdlr.Search)
-		search.GET("/:id", round_hdlr.Search)
+		search.GET("/:id", AccessTokenOptional(), round_hdlr.Search)
 
 		search.OPTIONS("/:id/details", Preflight("OPTIONS, GET"))
 		search.GET("/:id/details", AdminAuthRequired(), round_hdlr.SearchDetails)
 
 		search.OPTIONS("/:id/order", Preflight("OPTIONS, GET, POST"))
 		search.GET("/:id/order", TipplerAuthRequired(), order_hdlr.GetFromRoundSearch)
-		search.POST("/:id/order", TipplerAuthRequired(), order_hdlr.PostFromRoundSearch)
+		search.POST("/:id/order", AccessTokenOptional(), order_hdlr.PostFromRoundSearch)
 	}
 
 	return router
