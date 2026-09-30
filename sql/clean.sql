@@ -1,9 +1,16 @@
 CREATE TEMPORARY TABLE expired_rounds
-    AS SELECT round_id, name, locked
+    AS SELECT round_id, name, time, locked
     FROM rounds
     WHERE rounds.expires < CURRENT_TIMESTAMP;
 
 SELECT round_id, name FROM expired_rounds;
+
+INSERT INTO stats (time, tipplers, drinks)
+    SELECT expired_rounds.time, COUNT(orders.order_id) as tipplers, COALESCE(SUM(drinks.quantity), 0)
+    FROM expired_rounds
+    LEFT JOIN orders USING (round_id)
+    LEFT JOIN drinks USING (order_id)
+    GROUP BY expired_rounds.time;
 
 DELETE FROM drinks WHERE order_id IN (
     SELECT order_id

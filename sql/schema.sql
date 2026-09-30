@@ -1,3 +1,4 @@
+DROP TABLE IF EXISTS stats;
 DROP TABLE IF EXISTS drinks;
 DROP TABLE IF EXISTS orders;
 DROP TABLE IF EXISTS rounds;
@@ -29,4 +30,10 @@ CREATE TABLE drinks (
   quantity smallint NOT NULL,
   FOREIGN KEY (order_id) REFERENCES orders (order_id),
   UNIQUE(order_id, name)
+);
+
+CREATE TABLE stats (
+  time timestamp with time zone NOT NULL,
+  tipplers smallint NOT NULL,
+  drinks smallint NOT NULL
 );
