@@ -19,8 +19,8 @@ type Round struct {
 	Description	string	 	`json:"description"`
 	Time		time.Time	`json:"time"`
 	Expires		time.Time	`json:"expires"`
-	Organizer	string		`json:"organizer,omitempty"`
-	AccessToken	*string		`json:"access,omitempty"`
+	Organizer	string		`json:"password,omitempty"`
+	AccessToken	*string		`json:"access_token,omitempty"`
 	Locked		bool		`json:"-" default:false`
 }
 
@@ -81,7 +81,7 @@ func NewRoundModel(db *sql.DB, ctx context.Context) *RoundModel {
 
 // Create round in database
 func (m RoundModel) Create() error {
-	_, err := m.Exec("INSERT INTO rounds(round_id, name, description, time, expires, password, access_token, locked) VALUES ($1, $2, $3, $4)", m.Round.ID, m.Round.Name, m.Round.Description, m.Round.Time, m.Round.Expires, utils.Crypt(m.Round.Organizer), utils.Crypt(*m.Round.AccessToken))
+	_, err := m.Exec("INSERT INTO rounds(round_id, name, description, time, expires, password, access_token) VALUES ($1, $2, $3, $4, $5, $6, $7)", m.Round.ID, m.Round.Name, m.Round.Description, m.Round.Time, m.Round.Expires, m.Round.Organizer, m.Round.AccessToken)
 	return err
 }
 
