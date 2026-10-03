@@ -1,8 +1,8 @@
 package utils
 
 import (
-	"bytes"
 	"crypto/rand"
+	"crypto/subtle"
 	"encoding/base64"
 	"errors"
 	"log"
@@ -28,11 +28,16 @@ func Verify(candidate string, reference string) error {
 		return err
 	}
 
+	// Check saved hash length (24 bytes salt + 32 bytes digest)
+	if len(decoded) != 24+32 {
+		return errors.New("creds: Invalid password hash")
+	}
+
 	// salt = b64decode(reference)[:24]
     salt := decoded[:24]
 	// saved_digest = b64decode(reference)[24:]
     saved_digest := decoded[24:]
-    if !bytes.Equal(saved_digest, Digest(candidate, salt)) {
+	if subtle.ConstantTimeCompare(saved_digest, Digest(candidate, salt)) != 1 {
 		return errors.New("creds: Password mismatch")
 	}
 
@@ -40,6 +45,8 @@ func Verify(candidate string, reference string) error {
 }
 
 func Digest(password string, salt []byte) []byte {
+	// Scrypt parameters are set to N = 8192, r = 8, p = 2 to ensure retrocompatibility with previous API server in Python
+	// and are sufficient for the low security stakes of this application 
 	dk, err := scrypt.Key([]byte(password), salt, 1<<13, 8, 2, 32)
 	if err != nil {
 		log.Fatal(err)
