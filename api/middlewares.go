@@ -47,6 +47,7 @@ func BearerTokenRequired() gin.HandlerFunc {
 
 func TipplerAuthRequired() gin.HandlerFunc {
 	// "Authorization: Bearer base64url(username).base64url(password)" to provide tippler credentials
+	// "Authorization: Bearer base64url(organizer-password)" is also accepted
 	return func(c *gin.Context) {
 		// Ignore for OPTIONS requests
 		if c.Request.Method == http.MethodOptions {
@@ -97,7 +98,7 @@ func TipplerAuthRequired() gin.HandlerFunc {
 }
 
 func AdminAuthRequired() gin.HandlerFunc {
-	// "Authorization: Bearer base64url(token)" to provides round organizer password
+	// "Authorization: Bearer base64url(organizer-password)" to provides round organizer password
 	return func(c *gin.Context) {
 		// Ignore for OPTIONS requests
 		if c.Request.Method == http.MethodOptions {
@@ -115,7 +116,6 @@ func AdminAuthRequired() gin.HandlerFunc {
 		decoded, err := base64.RawURLEncoding.DecodeString(token)
 		if err != nil {
 			c.Header("WWW-Authenticate", "Bearer realm=\"mabinouze\", error=\"invalid_token\", error_description=\"Invalid base64 encoding\"")
-			c.Header("X-Debug", err.Error())
 			c.AbortWithStatus(http.StatusUnauthorized)
 			return
 		}
@@ -126,14 +126,14 @@ func AdminAuthRequired() gin.HandlerFunc {
 }
 
 func AccessTokenOptional() gin.HandlerFunc {
-	// "Authorization: Bearer base64url(token)" to provides optional round access token
+	// "Authorization: Bearer base64url(token)" to provides optional round access token, or organizer password
 	return func(c *gin.Context) {
 		// Ignore for OPTIONS requests
 		if c.Request.Method == http.MethodOptions {
 			c.Next()
 			return
 		}
-		
+
 		token, found := strings.CutPrefix(c.GetHeader("Authorization"), "Bearer ")
 		if !found {
 			return

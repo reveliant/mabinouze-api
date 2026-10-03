@@ -33,7 +33,7 @@ func NewRouter(db *sql.DB, debug bool) *gin.Engine {
 		// /v1/drink
 		drink_hdlr := DrinkHandler{Handler{DB: db}}
 		drinks := v1.Group("/drink")
-		drinks.Use(TipplerAuthRequired()) // Tipplers credentials are required for all drink operations
+		drinks.Use(TipplerAuthRequired()) // Tipplers credentials or round organizer password are required for all drink operations
 
 		drinks.OPTIONS("/:uuid", Preflight("OPTIONS, HEAD, GET, PUT, DELETE"))
 		drinks.HEAD("/:uuid", ParseUUID(), drink_hdlr.Get)
