@@ -91,7 +91,7 @@ func (h RoundHandler) Post(c *gin.Context) {
 	payload := new(m.Round)
 	if err := c.ShouldBind(&payload); err != nil {
 		c.Error(err)
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Internal server error while parsing round"})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Cannot parse round"})
 		return
 	}
 	
@@ -134,7 +134,7 @@ func (h RoundHandler) Put(c *gin.Context) {
 	payload := new(m.Round)
 	if err := c.ShouldBind(&payload); err != nil {
 		c.Error(err)
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Internal server error while parsing round"})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Cannot parse round"})
 		return
 	}
 

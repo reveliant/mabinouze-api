@@ -99,13 +99,14 @@ func (h OrderHandler) create(c *gin.Context, resolveRound func(c *gin.Context) *
 	payload := new(m.Order)
 	if err := c.ShouldBind(&payload); err != nil {
 		c.Error(err)
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Internal server error while parsing order"})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Cannot parse order"})
 		return
 	}
 	if payload.Tippler == "" && payload.InTippler == "" {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Missing tippler name"})
 		return
 	}
+	c.Set("payload", payload)
 
 	// Read parent round
 	round_model := resolveRound(c)
@@ -144,14 +145,13 @@ func (h OrderHandler) create(c *gin.Context, resolveRound func(c *gin.Context) *
 
 // Post from whole request body
 func (h OrderHandler) Post(c *gin.Context) {
-	payload := new(m.Order)
-	if err := c.ShouldBind(&payload); err != nil {
-		c.Error(err)
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Internal server error while parsing order"})
-		return
-	}
-
 	h.create(c, func(c *gin.Context) *m.RoundModel {
+		payload := c.MustGet("payload").(*m.Order)
+		if payload.RoundID == nil {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Missing parent round ID"})
+			return nil
+		}
+
 		model := m.NewRoundModel(h.DB, c.Request.Context())
 		model.Round.ID = *payload.RoundID
 

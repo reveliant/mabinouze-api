@@ -39,7 +39,7 @@ func (h DrinkHandler) Post(c *gin.Context) {
 	payload := new(m.Drink)
 	if err := c.ShouldBind(&payload); err != nil {
 		c.Error(err)
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Internal server error while parsing drink"})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Cannot parse drink"})
 		return
 	}
 	if payload.OrderID == nil {
@@ -89,7 +89,7 @@ func (h DrinkHandler) Put(c *gin.Context) {
 	payload := new(m.Drink)
 	if err := c.ShouldBind(&payload); err != nil {
 		c.Error(err)
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error":  "Internal server error while parsing drink"})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error":  "Cannot parse drink"})
 		return
 	}
 
