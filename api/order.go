@@ -24,14 +24,14 @@ func (h OrderHandler) read(c *gin.Context, resolveOrder func() *m.OrderModel) {
 	model := resolveOrder()
 	if model == nil { return }
 	
+	// Check tippler credentials
+	if !h.verifyOrderCredentials(c, model.Order) { return }
+	
 	// Handle HEAD request
 	if c.Request.Method == http.MethodHead {
 		c.Status(http.StatusNoContent)
 		return
 	}
-	
-	// Check tippler credentials
-	if !h.verifyOrderCredentials(c, model.Order) { return }
 
 	// Populate drinks
 	model.ReadDrinks()

@@ -21,14 +21,14 @@ func (h DrinkHandler) Get(c *gin.Context) {
 	model := h.getDrinkByID(c)
 	if model == nil { return }
 
+	// Verify tippler authorization on parent order
+	if !h.verifyDrinkAuthorization(c, model.Drink) { return }
+
 	// Handle HEAD request
 	if c.Request.Method == http.MethodHead {
 		c.Status(http.StatusNoContent)
 		return
 	}
-
-	// Verify tippler authorization on parent order
-	if !h.verifyDrinkAuthorization(c, model.Drink) { return }
 	
 	c.JSON(http.StatusOK, model.Drink.Clean())
 }
