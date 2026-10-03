@@ -65,12 +65,6 @@ func (m *OrderModel) Read() error {
 	return row.Scan(&m.Order.RoundID, &m.Order.Tippler, &m.Order.Password)
 }
 
-// Update order in database
-func (m OrderModel) Update() error {
-	_, err := m.Exec("UPDATE orders SET name = $1, password = $2 WHERE order_id = $3", m.Order.Tippler, m.Order.Password, m.Order.ID)
-	return err
-}
-
 // Delete order in database
 func (m OrderModel) Delete() error {
 	tx, err := m.Begin()
