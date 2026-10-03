@@ -46,6 +46,7 @@ func BearerTokenRequired() gin.HandlerFunc {
 }
 
 func TipplerAuthRequired() gin.HandlerFunc {
+	// "Authorization: Bearer base64url(username).base64url(password)" to provide tippler credentials
 	return func(c *gin.Context) {
 		// Ignore for OPTIONS requests
 		if c.Request.Method == http.MethodOptions {
@@ -72,6 +73,7 @@ func TipplerAuthRequired() gin.HandlerFunc {
 			}
 			// That might be an orgzanizer password
 			c.Set(AuthBearer, string(decoded))
+			c.Next()
 			return
 		}
 
@@ -95,7 +97,14 @@ func TipplerAuthRequired() gin.HandlerFunc {
 }
 
 func AdminAuthRequired() gin.HandlerFunc {
+	// "Authorization: Bearer base64url(token)" to provides round organizer password
 	return func(c *gin.Context) {
+		// Ignore for OPTIONS requests
+		if c.Request.Method == http.MethodOptions {
+			c.Next()
+			return
+		}
+
 		token, found := strings.CutPrefix(c.GetHeader("Authorization"), "Bearer ")
 		if !found {
 			c.Header("WWW-Authenticate", "Bearer realm=\"mabinouze\"")
@@ -117,7 +126,14 @@ func AdminAuthRequired() gin.HandlerFunc {
 }
 
 func AccessTokenOptional() gin.HandlerFunc {
+	// "Authorization: Bearer base64url(token)" to provides optional round access token
 	return func(c *gin.Context) {
+		// Ignore for OPTIONS requests
+		if c.Request.Method == http.MethodOptions {
+			c.Next()
+			return
+		}
+		
 		token, found := strings.CutPrefix(c.GetHeader("Authorization"), "Bearer ")
 		if !found {
 			return
@@ -140,6 +156,7 @@ func ParseUUID() gin.HandlerFunc {
 		id, err := uuid.Parse(c.Param("uuid"))
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Invalid UUID"})
+			return
 		}
 		c.Set("uuid", id)
 		c.Next()
@@ -152,7 +169,6 @@ func SecurityHeaders() gin.HandlerFunc {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Invalid host header"})
 			return
 		}
-		c.Header("Access-Control-Allow-Credentials", "true")
 		c.Header("Access-Control-Allow-Origin", "*")
 		c.Header("Content-Security-Policy", "default-src 'none'")
 		c.Header("Permissions-Policy", "geolocation=(),midi=(),sync-xhr=(),microphone=(),camera=(), magnetometer=(),gyroscope=(),fullscreen=(),payment=()")
