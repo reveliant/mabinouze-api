@@ -33,7 +33,7 @@ func NewRouter(db *sql.DB, debug bool) *gin.Engine {
 		// /v1/drink
 		drink_hdlr := DrinkHandler{Handler{DB: db}}
 		drinks := v1.Group("/drink")
-		drinks.Use(TipplerAuthRequired()) // Tipplers credentials or round organizer password are required for all drink operations
+		drinks.Use(TipplerAuthRequired(AllowBypass)) // Tipplers credentials or round organizer password are required for all drink operations
 
 		drinks.OPTIONS("/:uuid", Preflight("OPTIONS, HEAD, GET, PUT, DELETE"))
 		drinks.HEAD("/:uuid", ParseUUID(), drink_hdlr.Get)
@@ -49,9 +49,9 @@ func NewRouter(db *sql.DB, debug bool) *gin.Engine {
 		orders := v1.Group("/order")
 
 		orders.OPTIONS("/:uuid", Preflight("OPTIONS, HEAD, GET, DELETE"))
-		orders.HEAD("/:uuid", ParseUUID(), TipplerAuthRequired(), order_hdlr.Get)
-		orders.GET("/:uuid", ParseUUID(), TipplerAuthRequired(), order_hdlr.Get)
-		orders.DELETE("/:uuid", ParseUUID(), TipplerAuthRequired(), order_hdlr.Delete)
+		orders.HEAD("/:uuid", ParseUUID(), TipplerAuthRequired(AllowBypass), order_hdlr.Get)
+		orders.GET("/:uuid", ParseUUID(), TipplerAuthRequired(AllowBypass), order_hdlr.Get)
+		orders.DELETE("/:uuid", ParseUUID(), TipplerAuthRequired(AllowBypass), order_hdlr.Delete)
 
 		orders.OPTIONS("", Preflight("OPTIONS, POST"))
 		orders.POST("", AccessTokenOptional(), order_hdlr.Post)
@@ -73,7 +73,7 @@ func NewRouter(db *sql.DB, debug bool) *gin.Engine {
 		rounds.GET("/:uuid/details", ParseUUID(), AdminAuthRequired(), round_hdlr.GetDetails)
 
 		rounds.OPTIONS("/:uuid/order", Preflight("OPTIONS, GET, DELETE"))
-		rounds.GET("/:uuid/order", ParseUUID(), TipplerAuthRequired(), order_hdlr.GetFromRound)
+		rounds.GET("/:uuid/order", ParseUUID(), TipplerAuthRequired(ForbidBypass), order_hdlr.GetFromRound) // Bypass with organizer password in not authorized as tippler name is read from credentials
 		rounds.POST("/:uuid/order", ParseUUID(), AccessTokenOptional(), order_hdlr.PostFromRound)
 
 		// /v1/search
@@ -87,7 +87,7 @@ func NewRouter(db *sql.DB, debug bool) *gin.Engine {
 		search.GET("/:id/details", AdminAuthRequired(), round_hdlr.SearchDetails)
 
 		search.OPTIONS("/:id/order", Preflight("OPTIONS, GET, POST"))
-		search.GET("/:id/order", TipplerAuthRequired(), order_hdlr.GetFromRoundSearch)
+		search.GET("/:id/order", TipplerAuthRequired(ForbidBypass), order_hdlr.GetFromRoundSearch) // Bypass with organizer password in not authorized as tippler name is read from credentials
 		search.POST("/:id/order", AccessTokenOptional(), order_hdlr.PostFromRoundSearch)
 	}
 

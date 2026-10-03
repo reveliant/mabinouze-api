@@ -11,6 +11,9 @@ import (
 const AuthCredentials = "user_pair"
 const AuthBearer = "user_bearer"
 
+const AllowBypass = true
+const ForbidBypass = !AllowBypass
+
 type Credentials struct {
 	User		string
 	Password	string
@@ -45,7 +48,7 @@ func BearerTokenRequired() gin.HandlerFunc {
 	}
 }
 
-func TipplerAuthRequired() gin.HandlerFunc {
+func TipplerAuthRequired(allow_bypass bool) gin.HandlerFunc {
 	// "Authorization: Bearer base64url(username).base64url(password)" to provide tippler credentials
 	// "Authorization: Bearer base64url(organizer-password)" is also accepted
 	return func(c *gin.Context) {
@@ -64,6 +67,13 @@ func TipplerAuthRequired() gin.HandlerFunc {
 
 		b64username, b64password, found := strings.Cut(token, ".")
 		if !found {
+			if (allow_bypass != AllowBypass) {
+				// Bypass with organizer password is not allowed
+				c.Header("WWW-Authenticate", "Bearer realm=\"mabinouze\", error=\"invalid_token\", error_description=\"Invalid credentials format\"")
+				c.AbortWithStatus(http.StatusUnauthorized)
+				return
+			}
+
 			// Try organizer password
 			decoded, err := base64.RawURLEncoding.DecodeString(token)
 			if err != nil {
