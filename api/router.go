@@ -33,7 +33,7 @@ func NewRouter(db *sql.DB, debug bool) *gin.Engine {
 		// /v1/drink
 		drink_hdlr := DrinkHandler{Handler{DB: db}}
 		drinks := v1.Group("/drink")
-		drinks.Use(TipplerAuthRequired())
+		drinks.Use(TipplerAuthRequired()) // Tipplers credentials are required for all drink operations
 
 		drinks.OPTIONS("/:uuid", Preflight("OPTIONS, HEAD, GET, PUT, DELETE"))
 		drinks.HEAD("/:uuid", ParseUUID(), drink_hdlr.Get)
@@ -61,7 +61,7 @@ func NewRouter(db *sql.DB, debug bool) *gin.Engine {
 		rounds := v1.Group("/round")
 
 		rounds.OPTIONS("/:uuid", Preflight("OPTIONS, HEAD, GET, PUT, DELETE"))
-		rounds.HEAD("/:uuid", ParseUUID(), round_hdlr.Get)
+		rounds.HEAD("/:uuid", ParseUUID(), round_hdlr.Get) // Do not require authentication as testing round existence is a feature
 		rounds.GET("/:uuid", ParseUUID(), AccessTokenOptional(), round_hdlr.Get)
 		rounds.PUT("/:uuid", ParseUUID(), AdminAuthRequired(), round_hdlr.Put)
 		rounds.DELETE("/:uuid", ParseUUID(), AdminAuthRequired(), round_hdlr.Delete)
@@ -80,7 +80,7 @@ func NewRouter(db *sql.DB, debug bool) *gin.Engine {
 		search := v1.Group("/search")
 
 		search.OPTIONS("/:id", Preflight("OPTIONS, HEAD, GET"))
-		search.HEAD("/:id", round_hdlr.Search)
+		search.HEAD("/:id", round_hdlr.Search) // Do not require authentication as testing round existence is a feature
 		search.GET("/:id", AccessTokenOptional(), round_hdlr.Search)
 
 		search.OPTIONS("/:id/details", Preflight("OPTIONS, GET"))
