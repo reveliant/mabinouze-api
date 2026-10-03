@@ -38,7 +38,8 @@ func (h DrinkHandler) Post(c *gin.Context) {
 	// Bind payload to drink model
 	payload := new(m.Drink)
 	if err := c.ShouldBind(&payload); err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.Error(err)
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Internal server error while parsing drink"})
 		return
 	}
 	if payload.OrderID == nil {
@@ -67,7 +68,8 @@ func (h DrinkHandler) Post(c *gin.Context) {
 			c.AbortWithStatusJSON(http.StatusConflict, gin.H{"error": "Drink's name already defined on order", "order": model.Drink.OrderID, "name": model.Drink.Name})
 			return
 		}
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error(), "data": model.Drink.Clean()})
+		c.Error(err)
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Internal server error while inserting drink", "data": model.Drink.Clean()})
 		return
 	}
 
@@ -86,7 +88,8 @@ func (h DrinkHandler) Put(c *gin.Context) {
 	// Bind payload to drink model
 	payload := new(m.Drink)
 	if err := c.ShouldBind(&payload); err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.Error(err)
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error":  "Internal server error while parsing drink"})
 		return
 	}
 
@@ -99,7 +102,8 @@ func (h DrinkHandler) Put(c *gin.Context) {
 		err = model.Delete()
 	}
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.Error(err)
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Internal server error while updating drink"})
 		return
 	}
 	
@@ -117,7 +121,8 @@ func (h DrinkHandler) Delete(c *gin.Context) {
 
 	// Delete from database
 	if err := model.Delete(); err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.Error(err)
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Internal server error while deleting drink"})
 		return
 	}
 

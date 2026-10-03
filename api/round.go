@@ -36,7 +36,8 @@ func (h RoundHandler) read(c *gin.Context, resolveRound func(c *gin.Context) *m.
 	// Send summary
 	summary, err := model.Summary()
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.Error(err)
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Internal server error while exporting round summary"})
 		return
 	}
 
@@ -55,7 +56,8 @@ func (h RoundHandler) read_details(c *gin.Context, resolveRound func(c *gin.Cont
 
 	details, err := model.Details()
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.Error(err)
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Internal server error while exporting round details"})
 		return
 	}
 
@@ -88,7 +90,8 @@ func (h RoundHandler) Post(c *gin.Context) {
 	// Bind payload to round model
 	payload := new(m.Round)
 	if err := c.ShouldBind(&payload); err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.Error(err)
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Internal server error while parsing round"})
 		return
 	}
 	
@@ -111,7 +114,8 @@ func (h RoundHandler) Post(c *gin.Context) {
 			c.AbortWithStatusJSON(http.StatusConflict, gin.H{"error": "Round's name already defined", "name": model.Round.Name})
 			return
 		}
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error(), "data": model.Round.Clean()})
+		c.Error(err)
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Internal server error while inserting round", "data": model.Round.Clean()})
 		return
 	}
 
@@ -129,7 +133,8 @@ func (h RoundHandler) Put(c *gin.Context) {
 	// Bind payload to round model
 	payload := new(m.Round)
 	if err := c.ShouldBind(&payload); err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.Error(err)
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Internal server error while parsing round"})
 		return
 	}
 
@@ -149,7 +154,8 @@ func (h RoundHandler) Put(c *gin.Context) {
 	
 	// Update in database
 	if err := model.Update(); err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.Error(err)
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Internal server error while updating round"})
 		return
 	}
 
@@ -165,7 +171,8 @@ func (h RoundHandler) Delete(c *gin.Context) {
 	if !h.verifyRoundOrganizerPassword(c, model.Round) { return }
 
 	if err := model.Delete(); err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.Error(err)
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Internal server error while deleting round"})
 		return
 	}
 

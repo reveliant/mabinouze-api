@@ -98,7 +98,8 @@ func (h OrderHandler) create(c *gin.Context, resolveRound func(c *gin.Context) *
 	// Bind payload to order model
 	payload := new(m.Order)
 	if err := c.ShouldBind(&payload); err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.Error(err)
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Internal server error while parsing order"})
 		return
 	}
 	if payload.Tippler == "" && payload.InTippler == "" {
@@ -133,7 +134,8 @@ func (h OrderHandler) create(c *gin.Context, resolveRound func(c *gin.Context) *
 			c.AbortWithStatusJSON(http.StatusConflict, gin.H{"error": "Order's name already defined on round", "order": model.Order.RoundID, "name": model.Order.Tippler})
 			return
 		}
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error(), "data": model.Order.Clean()})
+		c.Error(err)
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Internal server error while inserting order", "data": model.Order.Clean()})
 		return
 	}
 
@@ -144,7 +146,8 @@ func (h OrderHandler) create(c *gin.Context, resolveRound func(c *gin.Context) *
 func (h OrderHandler) Post(c *gin.Context) {
 	payload := new(m.Order)
 	if err := c.ShouldBind(&payload); err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.Error(err)
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Internal server error while parsing order"})
 		return
 	}
 
@@ -181,7 +184,8 @@ func (h OrderHandler) Delete(c *gin.Context) {
 
 	// Delete from database
 	if err := model.Delete(); err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.Error(err)
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Internal server error while deleting order"})
 		return
 	}
 

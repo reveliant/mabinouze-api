@@ -66,13 +66,13 @@ func (h Handler) getOrderByID(c *gin.Context) *m.OrderModel {
 	return model
 }
 
-// Check tippler credentials
+// Check tippler credentials or alternatively parent round organizer password
 func (h Handler) verifyOrderCredentials(c *gin.Context, order m.Order) bool {
 	// Check tippler credentials against order
 	if creds, found := c.Get(AuthCredentials); found {
 		if err := order.VerifyCredentials(creds.(Credentials).User, creds.(Credentials).Password); err != nil {
 			c.Header("WWW-Authenticate", "Bearer realm=\"mabinouze\", error=\"invalid_token\", error_description=\"Invalid credentials\"")
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid tippler credentials"})
 			return false
 		}
 		return true
