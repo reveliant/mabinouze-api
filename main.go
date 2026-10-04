@@ -32,7 +32,7 @@ func execSQL(filename string) {
 		log.Fatal(err.Error())
 	}
 
-	_, err = db.Query(string(sqlCmd))
+	_, err = db.Exec(string(sqlCmd))
 	if err != nil {
 		log.Fatal(err.Error())
 	}
