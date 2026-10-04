@@ -16,8 +16,8 @@ import (
 type Order struct {
 	ID			uuid.UUID	`json:"id"`
 	RoundID		*uuid.UUID	`json:"round,omitempty"`
-	Tippler		string		`json:"name"`
-	InTippler	string		`json:"tippler,omitempty"` // Alt name for tippler field
+	Tippler		string		`json:"name" binding:"max=255"`
+	InTippler	string		`json:"tippler,omitempty" binding:"max=255"` // Alt name for tippler field
 	Drinks		[]Drink		`json:"drinks,omitempty"`
 	Password	string		`json:"password,omitempty"`
 }

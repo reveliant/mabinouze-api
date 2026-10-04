@@ -12,10 +12,6 @@ import (
 
 // Compute a base64 digest for password
 func Crypt(password string) string {
-    if password == "" {
-        return ""
-	}
-
 	salt := make([]byte, 24)
 	rand.Read(salt)
     return base64.StdEncoding.EncodeToString(append(salt, Digest(password, salt)...))
@@ -33,9 +29,7 @@ func Verify(candidate string, reference string) error {
 		return errors.New("creds: Invalid password hash")
 	}
 
-	// salt = b64decode(reference)[:24]
     salt := decoded[:24]
-	// saved_digest = b64decode(reference)[24:]
     saved_digest := decoded[24:]
 	if subtle.ConstantTimeCompare(saved_digest, Digest(candidate, salt)) != 1 {
 		return errors.New("creds: Password mismatch")

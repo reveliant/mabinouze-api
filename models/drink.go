@@ -14,7 +14,7 @@ import (
 type Drink struct {
 	ID			*uuid.UUID	`json:"id,omitempty"`
 	OrderID		*uuid.UUID	`json:"order_id,omitempty"`
-	Name		string		`json:"name"`
+	Name		string		`json:"name" binding:"max=255"`
 	Quantity	uint16		`json:"quantity" default:1`
 }
 

@@ -106,6 +106,10 @@ func (h OrderHandler) create(c *gin.Context, resolveRound func(c *gin.Context) *
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Missing tippler name"})
 		return
 	}
+	if payload.Password == "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Password cannot be empty"})
+		return
+	}
 	c.Set("payload", payload)
 
 	// Read parent round

@@ -15,9 +15,9 @@ import (
 
 type Round struct {
 	ID			uuid.UUID	`json:"id"`
-	Name		string		`json:"name"`
-	Description	string	 	`json:"description"`
-	Time		time.Time	`json:"time"`
+	Name		string		`json:"name" binding:"max=255"`
+	Description	string	 	`json:"description" binding:"required,max=255"`
+	Time		time.Time	`json:"time" binding:"required"`
 	Expires		time.Time	`json:"expires"`
 	Organizer	string		`json:"password,omitempty"`
 	AccessToken	*string		`json:"access_token,omitempty"`

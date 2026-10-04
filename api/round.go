@@ -94,6 +94,14 @@ func (h RoundHandler) Post(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Cannot parse round"})
 		return
 	}
+	if payload.Time.Before(time.Now().Add(-time.Hour)) {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Requested time is before the last hour"})
+		return
+	}
+	if payload.Organizer == "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Organizer password cannot be empty"})
+		return
+	}
 	
 	// Prepare new drink object from payload
 	model := m.NewRoundModel(h.DB, c.Request.Context())
@@ -104,7 +112,10 @@ func (h RoundHandler) Post(c *gin.Context) {
 	model.Round.Expires = model.Round.Time.Add(time.Hour * 6)
 	model.Round.Organizer = utils.Crypt(payload.Organizer)
 	if payload.AccessToken != nil {
-		access_token := utils.Crypt(*payload.AccessToken)
+		access_token := ""
+		if (*payload.AccessToken != "") {
+			access_token = utils.Crypt(*payload.AccessToken)
+		}
 		model.Round.AccessToken = &access_token
 	}
 
@@ -140,6 +151,10 @@ func (h RoundHandler) Put(c *gin.Context) {
 
 	// Bind updated properties
 	model.Round.Description = payload.Description
+	if payload.Time.Before(model.Round.Expires.Add(-time.Hour * 6)) {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Requested time is before the 6 hour before round expiration"})
+		return
+	}
 	model.Round.Time = payload.Time.Round(time.Minute)
 
 	if !model.Round.Locked {
